@@ -1,0 +1,45 @@
+﻿@using FamilyLibrary.ViewModels
+
+@model BookListViewModel
+
+<h1>Домашняя библиотека</h1>
+
+@if (TempData["Message"] != null)
+{
+    <div class="success">@TempData["Message"]</div>
+}
+
+<form asp-action="Index" method="get">
+    <input type="text" name="searchQuery" value="@Model.SearchQuery" placeholder="Поиск..." />
+    <button type="submit">Найти</button>
+</form>
+
+<a asp-action="Create">+ Добавить книгу</a>
+
+<table>
+    <thead>
+        <tr><th>Название</th><th>Автор</th><th>Год</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var book in Model.Books)
+        {
+            <tr>
+                <td>@book.Title</td>
+                <td>@book.Author</td>
+                <td>@book.ReleaseDate</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@book.Id">Открыть</a>
+                    <form asp-action="Delete" asp-route-id="@book.Id" method="post"
+                          onsubmit="return confirm('Удалить книгу?');" style="display:inline">
+                        <button type="submit">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@for (int i = 1; i <= Model.TotalPages; i++)
+{
+    <a asp-action="Index" asp-route-page="@i" class="@(i == Model.CurrentPage ? "active" : "")">@i</a>
+}

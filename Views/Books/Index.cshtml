@@ -28,7 +28,7 @@
                 <td>@book.Author</td>
                 <td>@book.ReleaseDate</td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@book.Id">Открыть</a>
+                    <a asp-action="Card" asp-route-id="@book.Id">Открыть</a>
                     <form asp-action="Delete" asp-route-id="@book.Id" method="post"
                           onsubmit="return confirm('Удалить книгу?');" style="display:inline">
                         <button type="submit">Удалить</button>

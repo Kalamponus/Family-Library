@@ -1,0 +1,30 @@
+@model Book
+
+<h1>@Model.Title</h1>
+
+<dl>
+    <dt>Автор</dt>
+    <dd>@Model.Author</dd>
+
+    <dt>Дата издания</dt>
+    <dd>@Model.ReleaseDate.ToString("dd.MM.yyyy")</dd>
+
+    <dt>Описание</dt>
+    <dd>@Model.Description</dd>
+</dl>
+
+<h2>Оглавление</h2>
+<div class="table-of-contents">
+    @Html.Raw(Model.TableOfContents)
+</div>
+
+<div class="actions">
+    <a asp-action="Edit" asp-route-id="@Model.Id">Редактировать</a>
+
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
+          onsubmit="return confirm('Удалить книгу «@Model.Title»?');" style="display:inline">
+        <button type="submit">Удалить</button>
+    </form>
+
+    <a asp-action="Index">Назад к списку</a>
+</div>

@@ -1,5 +1,6 @@
-﻿using FamilyLibrary.ForTesting;
+﻿using FamilyLibrary.DTO;
 using FamilyLibrary.Models;
+using FamilyLibrary.Persistence;
 using FamilyLibrary.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,70 +8,127 @@ namespace FamilyLibrary.Controllers
 {
     public class BooksController : Controller
     {
-        [HttpGet]
-        public IActionResult Index()
+        private const int PageSize = 10;
+        private readonly BooksRepository _booksRepository;
+
+        public BooksController(BooksRepository booksRepository)
         {
-            return View(TestData.TestBookList);
+            _booksRepository = booksRepository;
         }
 
         [HttpGet]
-        public IActionResult Card(int id)
+        public async Task<IActionResult> Index(string? searchQuery, SearchType searchType = SearchType.ByTitle, int page = 1)
         {
-            Book book = GetBook(id);
-            return View(book);
-        }
+            var (books, totalCount) = await _booksRepository.SearchBooksAsync(searchQuery, searchType, page, PageSize);
 
-        [HttpPost]
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            Book book = GetBook(id);
-            return View(book);
-        }
-
-        [HttpPost]
-        public IActionResult Edit(int id, BookEditViewModel editForm)
-        {
-            var index = TestData.TestBookList.Books.FindIndex(b => b.Id == id);
-            if (index == -1) return NotFound();
-
-            var updatedBook = TestData.TestBookList.Books[index] with
+            var model = new BookListViewModel
             {
-                Title = editForm.Title,
-                Author = editForm.Author,
-                ReleaseDate = editForm.ReleaseDate,
-                Description = editForm.Description,
-                TableOfContents = editForm.TableOfContents
+                Books = books.ToList(),
+                SearchQuery = searchQuery,
+                SearchType = searchType,
+                CurrentPage = page,
+                TotalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)PageSize))
             };
 
-            TestData.TestBookList.Books[index] = updatedBook;
+            return View(model);
+        }
 
-            return RedirectToAction(nameof(Card), new { id = id });
+        [HttpGet]
+        public async Task<IActionResult> Card(int id)
+        {
+            Book? book = await _booksRepository.GetByIdAsync(id);
+
+            if (book is null)
+                return NotFound();
+
+            return View(book);
+        }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View(new BookFormViewModel());
         }
 
         [HttpPost]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Create(BookFormViewModel editForm)
         {
-            Book book = GetBook(id);
-            TestData.TestBookList.Books.Remove(book);
+            if (!ModelState.IsValid)
+                return View(editForm);
+
+            BookData bookData = new(editForm.Title, editForm.Description, editForm.Author, editForm.ReleaseDate, editForm.TableOfContents);
+            bool isSuccessful = await _booksRepository.InsertAsync(bookData);
+
+            if (!isSuccessful)
+            {
+                ModelState.AddModelError("", "Не удалось создать книгу");
+                return View(editForm);
+            }
+
+            TempData["Message"] = "Книга успешно добавлена";
+            TempData["MessageType"] = "success";
 
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult Error()
+        public async Task<IActionResult> Edit(int id)
         {
-            return View();
+            Book? book = await _booksRepository.GetByIdAsync(id);
+
+            if (book is null)
+                return NotFound();
+
+            BookFormViewModel viewModel = new()
+            {
+                Title = book.Title,
+                Description = book.Description,
+                ReleaseDate = book.ReleaseDate,
+                Author = book.Author,
+                TableOfContents = book.TableOfContents
+            };
+
+            return View(viewModel);
         }
 
-        private Book GetBook(int id)
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, BookFormViewModel editForm)
         {
-            return TestData.TestBookList.Books.First(b => b.Id == id);
+            if (!ModelState.IsValid)
+            {
+                return View(editForm);
+            }
+
+            BookData bookData = new(editForm.Title, editForm.Description, editForm.Author, editForm.ReleaseDate, editForm.TableOfContents);
+            bool isSuccessful = await _booksRepository.UpdateAsync(id, bookData);
+
+            if (!isSuccessful)
+            {
+                ModelState.AddModelError("", "Не удалось обновить — книга не найдена");
+                return View(editForm);
+            }
+
+            TempData["Message"] = "Изменения сохранены";
+            TempData["MessageType"] = "success";
+
+            return RedirectToAction(nameof(Card), new { id });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            bool isSuccessful = await _booksRepository.DeleteAsync(id);
+
+            TempData["Message"] = isSuccessful ? "Книга удалена" : "Не удалось удалить — книга не найдена";
+            TempData["MessageType"] = isSuccessful ? "success" : "error";
+
+            return RedirectToAction(nameof(Index)); 
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Error()
+        {
+            return View();
         }
     }
 }

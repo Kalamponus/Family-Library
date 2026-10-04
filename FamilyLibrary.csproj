@@ -13,8 +13,4 @@
     <PackageReference Include="TinyMCE" Version="8.9.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Persistence\" />
-  </ItemGroup>
-
 </Project>

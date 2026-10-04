@@ -1,0 +1,13 @@
+@using FamilyLibrary.ViewModels
+@model BookFormViewModel
+
+<h1>Новая книга</h1>
+
+<form id="book-form" asp-action="Create" method="post">
+    <partial name="_BookFormFields" model="Model" />
+    <a asp-action="Index">Отмена</a>
+</form>
+
+@section Scripts {
+    <partial name="_BookFormScripts" />
+}

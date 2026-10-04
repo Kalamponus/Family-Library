@@ -6,11 +6,18 @@
 
 @if (TempData["Message"] != null)
 {
-    <div class="success">@TempData["Message"]</div>
+    var type = TempData["MessageType"]?.ToString() ?? "success";
+    <div class="toast-notification toast-@type">@TempData["Message"]</div>
 }
 
 <form asp-action="Index" method="get">
     <input type="text" name="searchQuery" value="@Model.SearchQuery" placeholder="Поиск..." />
+    <select name="searchType">
+        <option value="0" selected="@(Model.SearchType == SearchType.ByTitle)">По названию</option>
+        <option value="1" selected="@(Model.SearchType == SearchType.ByAuthor)">По автору</option>
+        <option value="2" selected="@(Model.SearchType == SearchType.ByDescription)">По описанию</option>
+        <option value="3" selected="@(Model.SearchType == SearchType.ByTableOfContents)">По оглавлению</option>
+    </select>
     <button type="submit">Найти</button>
 </form>
 
@@ -26,11 +33,14 @@
             <tr>
                 <td>@book.Title</td>
                 <td>@book.Author</td>
-                <td>@book.ReleaseDate</td>
+                <td>@book.ReleaseDate.Year</td>
                 <td>
                     <a asp-action="Card" asp-route-id="@book.Id">Открыть</a>
+                    <a asp-action="Edit" asp-route-id="@book.Id">Редактировать</a>
+
                     <form asp-action="Delete" asp-route-id="@book.Id" method="post"
-                          onsubmit="return confirm('Удалить книгу?');" style="display:inline">
+                          onsubmit="return confirm('Удалить книгу «@book.Title»? Это действие нельзя отменить.');"
+                          style="display:inline">
                         <button type="submit">Удалить</button>
                     </form>
                 </td>
@@ -39,7 +49,16 @@
     </tbody>
 </table>
 
+@if (!Model.Books.Any())
+{
+    <p>Книг не найдено.</p>
+}
+
 @for (int i = 1; i <= Model.TotalPages; i++)
 {
-    <a asp-action="Index" asp-route-page="@i" class="@(i == Model.CurrentPage ? "active" : "")">@i</a>
+    <a asp-action="Index"
+       asp-route-page="@i"
+       asp-route-searchQuery="@Model.SearchQuery"
+       asp-route-searchType="@Model.SearchType"
+       class="@(i == Model.CurrentPage ? "active" : "")">@i</a>
 }

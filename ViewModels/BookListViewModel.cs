@@ -6,7 +6,7 @@ namespace FamilyLibrary.ViewModels
     {
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
-        public List<Book> Books { get; set; } = [];
+        public IReadOnlyList<Book> Books { get; set; } = [];
         public string? SearchQuery { get; set; }
         public SearchType SearchType { get; set; }
     }

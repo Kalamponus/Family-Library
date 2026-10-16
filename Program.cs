@@ -16,9 +16,11 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Books/Error");
     app.UseHsts();
 }
+
+app.UseStatusCodePagesWithReExecute("/Books/Error", "?statusCode={0}");
 
 app.UseHttpsRedirection();
 app.UseRouting();

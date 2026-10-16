@@ -1,7 +1,14 @@
+<style>
+    .ck-editor__editable_inline { min-height: 250px; }
+</style>
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script>
     ClassicEditor
-        .create(document.querySelector('#TableOfContents'))
+        .create(document.querySelector('#TableOfContents'), {
+            toolbar: {
+                removeItems: ['uploadImage', 'mediaEmbed']
+            }
+        })
         .then(editor => {
             document.querySelector('#book-form').addEventListener('submit', function () {
                 editor.updateSourceElement();

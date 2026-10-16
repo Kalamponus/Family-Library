@@ -8,26 +8,25 @@ namespace FamilyLibrary.Controllers
 {
     public class BooksController : Controller
     {
-        private const int PageSize = 10;
-        private readonly BooksRepository _booksRepository;
+        private readonly BooksService _booksService;
 
-        public BooksController(BooksRepository booksRepository)
+        public BooksController(BooksService booksService)
         {
-            _booksRepository = booksRepository;
+            _booksService = booksService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index(string? searchQuery, SearchType searchType = SearchType.ByTitle, int page = 1)
         {
-            var (books, totalCount) = await _booksRepository.SearchBooksAsync(searchQuery, searchType, page, PageSize);
+            PagedResult<Book> books = await _booksService.SearchAsync(searchQuery, searchType, page);
 
             var model = new BookListViewModel
             {
-                Books = books.ToList(),
+                Books = books.Items,
                 SearchQuery = searchQuery,
                 SearchType = searchType,
                 CurrentPage = page,
-                TotalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)PageSize))
+                TotalPages = books.TotalPages
             };
 
             return View(model);
@@ -36,7 +35,7 @@ namespace FamilyLibrary.Controllers
         [HttpGet]
         public async Task<IActionResult> Card(int id)
         {
-            Book? book = await _booksRepository.GetByIdAsync(id);
+            Book? book = await _booksService.GetByIdAsync(id);
 
             if (book is null)
                 return NotFound();
@@ -57,7 +56,7 @@ namespace FamilyLibrary.Controllers
                 return View(editForm);
 
             BookData bookData = new(editForm.Title, editForm.Description, editForm.Author, editForm.ReleaseDate, editForm.TableOfContents);
-            bool isSuccessful = await _booksRepository.InsertAsync(bookData);
+            bool isSuccessful = await _booksService.CreateAsync(bookData);
 
             if (!isSuccessful)
             {
@@ -74,7 +73,7 @@ namespace FamilyLibrary.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            Book? book = await _booksRepository.GetByIdAsync(id);
+            Book? book = await _booksService.GetByIdAsync(id);
 
             if (book is null)
                 return NotFound();
@@ -100,7 +99,7 @@ namespace FamilyLibrary.Controllers
             }
 
             BookData bookData = new(editForm.Title, editForm.Description, editForm.Author, editForm.ReleaseDate, editForm.TableOfContents);
-            bool isSuccessful = await _booksRepository.UpdateAsync(id, bookData);
+            bool isSuccessful = await _booksService.UpdateAsync(id, bookData);
 
             if (!isSuccessful)
             {
@@ -117,7 +116,7 @@ namespace FamilyLibrary.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            bool isSuccessful = await _booksRepository.DeleteAsync(id);
+            bool isSuccessful = await _booksService.DeleteAsync(id);
 
             TempData["Message"] = isSuccessful ? "Книга удалена" : "Не удалось удалить — книга не найдена";
             TempData["MessageType"] = isSuccessful ? "success" : "error";
@@ -125,10 +124,10 @@ namespace FamilyLibrary.Controllers
             return RedirectToAction(nameof(Index)); 
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Error()
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error(int? statusCode)
         {
-            return View();
+            return View(statusCode ?? 500);
         }
     }
 }

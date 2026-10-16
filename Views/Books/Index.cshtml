@@ -1,64 +1,112 @@
-﻿@using FamilyLibrary.ViewModels
+@using FamilyLibrary.ViewModels
 
 @model BookListViewModel
-
-<h1>Домашняя библиотека</h1>
-
-@if (TempData["Message"] != null)
-{
-    var type = TempData["MessageType"]?.ToString() ?? "success";
-    <div class="toast-notification toast-@type">@TempData["Message"]</div>
+@{
+    ViewData["Title"] = "Все книги";
 }
 
-<form asp-action="Index" method="get">
-    <input type="text" name="searchQuery" value="@Model.SearchQuery" placeholder="Поиск..." />
-    <select name="searchType">
-        <option value="0" selected="@(Model.SearchType == SearchType.ByTitle)">По названию</option>
-        <option value="1" selected="@(Model.SearchType == SearchType.ByAuthor)">По автору</option>
-        <option value="2" selected="@(Model.SearchType == SearchType.ByDescription)">По описанию</option>
-        <option value="3" selected="@(Model.SearchType == SearchType.ByTableOfContents)">По оглавлению</option>
-    </select>
-    <button type="submit">Найти</button>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <h1 class="h3 mb-0">Все книги</h1>
+    <a asp-action="Create" class="btn btn-primary">Добавить книгу</a>
+</div>
+
+<form asp-action="Index" method="get" class="row g-2 mb-4">
+    <div class="col-12 col-md">
+        <input type="text" name="searchQuery" value="@Model.SearchQuery" class="form-control"
+               placeholder="Что ищем?" aria-label="Поисковый запрос" />
+    </div>
+    <div class="col-12 col-md-3">
+        <select name="searchType" class="form-select" aria-label="Где искать">
+            <option value="0" selected="@(Model.SearchType == SearchType.ByTitle)">По названию</option>
+            <option value="1" selected="@(Model.SearchType == SearchType.ByAuthor)">По автору</option>
+            <option value="2" selected="@(Model.SearchType == SearchType.ByDescription)">По описанию</option>
+            <option value="3" selected="@(Model.SearchType == SearchType.ByTableOfContents)">По оглавлению</option>
+        </select>
+    </div>
+    <div class="col-12 col-md-auto d-flex gap-2">
+        <button type="submit" class="btn btn-outline-primary">Найти</button>
+        @if (!string.IsNullOrEmpty(Model.SearchQuery))
+        {
+            <a asp-action="Index" class="btn btn-outline-secondary">Сбросить</a>
+        }
+    </div>
 </form>
 
-<a asp-action="Create">+ Добавить книгу</a>
-
-<table>
-    <thead>
-        <tr><th>Название</th><th>Автор</th><th>Год</th><th></th></tr>
-    </thead>
-    <tbody>
-        @foreach (var book in Model.Books)
-        {
-            <tr>
-                <td>@book.Title</td>
-                <td>@book.Author</td>
-                <td>@book.ReleaseDate.Year</td>
-                <td>
-                    <a asp-action="Card" asp-route-id="@book.Id">Открыть</a>
-                    <a asp-action="Edit" asp-route-id="@book.Id">Редактировать</a>
-
-                    <form asp-action="Delete" asp-route-id="@book.Id" method="post"
-                          onsubmit="return confirm('Удалить книгу «@book.Title»? Это действие нельзя отменить.');"
-                          style="display:inline">
-                        <button type="submit">Удалить</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-@if (!Model.Books.Any())
+@if (Model.Books.Any())
 {
-    <p>Книг не найдено.</p>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Название</th>
+                    <th>Автор</th>
+                    <th class="text-nowrap">Год</th>
+                    <th class="text-end">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var book in Model.Books)
+                {
+                    <tr>
+                        <td class="fw-semibold">@book.Title</td>
+                        <td>@book.Author</td>
+                        <td>@book.ReleaseDate.Year</td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="Card" asp-route-id="@book.Id" class="btn btn-sm btn-outline-primary">Открыть</a>
+                            <a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-sm btn-outline-secondary">Изменить</a>
+                            <form asp-action="Delete" asp-route-id="@book.Id" method="post" class="d-inline"
+                                  data-confirm="Удалить книгу «@book.Title»? Это действие нельзя отменить.">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav aria-label="Страницы списка">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.CurrentPage <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-page="@(Model.CurrentPage - 1)"
+                       asp-route-searchQuery="@Model.SearchQuery"
+                       asp-route-searchType="@Model.SearchType"
+                       aria-label="Предыдущая страница">&laquo;</a>
+                </li>
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-page="@i"
+                           asp-route-searchQuery="@Model.SearchQuery"
+                           asp-route-searchType="@Model.SearchType">@i</a>
+                    </li>
+                }
+                <li class="page-item @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-page="@(Model.CurrentPage + 1)"
+                       asp-route-searchQuery="@Model.SearchQuery"
+                       asp-route-searchType="@Model.SearchType"
+                       aria-label="Следующая страница">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    }
 }
-
-@for (int i = 1; i <= Model.TotalPages; i++)
+else if (!string.IsNullOrEmpty(Model.SearchQuery))
 {
-    <a asp-action="Index"
-       asp-route-page="@i"
-       asp-route-searchQuery="@Model.SearchQuery"
-       asp-route-searchType="@Model.SearchType"
-       class="@(i == Model.CurrentPage ? "active" : "")">@i</a>
+    <div class="text-center text-muted py-5">
+        <p class="mb-1">По запросу «@Model.SearchQuery» ничего не нашлось.</p>
+        <p class="mb-0">Попробуйте изменить запрос или выбрать другое место поиска.</p>
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <p class="text-muted mb-3">В библиотеке пока нет книг.</p>
+        <a asp-action="Create" class="btn btn-primary">Добавить книгу</a>
+    </div>
 }

@@ -9,8 +9,8 @@ builder.Services.AddRazorPages();
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 builder.Services.AddSingleton<DapperContext>();
-builder.Services.AddSingleton<BooksRepository>();
-builder.Services.AddSingleton<BooksService>();
+builder.Services.AddScoped<BooksRepository>();
+builder.Services.AddScoped<BooksService>();
 
 var app = builder.Build();
 

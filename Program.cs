@@ -3,12 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
-
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 builder.Services.AddControllersWithViews(o =>
     o.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+
 builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<BooksRepository>();
 builder.Services.AddScoped<BooksService>();

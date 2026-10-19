@@ -3,8 +3,8 @@
     public record Book(
         int Id, 
         string Title, 
-        string Description, 
+        string? Description, 
         string Author, 
         DateOnly ReleaseDate, 
-        string TableOfContents);
+        string? TableOfContents);
 }

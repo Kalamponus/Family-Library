@@ -25,7 +25,7 @@ namespace FamilyLibrary.Controllers
                 Books = books.Items,
                 SearchQuery = searchQuery,
                 SearchType = searchType,
-                CurrentPage = page,
+                CurrentPage = books.Page,
                 TotalPages = books.TotalPages
             };
 
@@ -55,7 +55,7 @@ namespace FamilyLibrary.Controllers
             if (!ModelState.IsValid)
                 return View(editForm);
 
-            BookData bookData = new(editForm.Title, editForm.Description, editForm.Author, editForm.ReleaseDate, editForm.TableOfContents);
+            BookData bookData = new(editForm.Title, editForm.Description, editForm.Author, editForm.ReleaseDate!.Value, editForm.TableOfContents);
             bool isSuccessful = await _booksService.CreateAsync(bookData);
 
             if (!isSuccessful)
@@ -98,7 +98,7 @@ namespace FamilyLibrary.Controllers
                 return View(editForm);
             }
 
-            BookData bookData = new(editForm.Title, editForm.Description, editForm.Author, editForm.ReleaseDate, editForm.TableOfContents);
+            BookData bookData = new(editForm.Title, editForm.Description, editForm.Author, editForm.ReleaseDate!.Value, editForm.TableOfContents);
             bool isSuccessful = await _booksService.UpdateAsync(id, bookData);
 
             if (!isSuccessful)

@@ -1,4 +1,4 @@
-﻿namespace FamilyLibrary.ViewModels
+﻿namespace FamilyLibrary.Models
 {
     public enum SearchType
     {

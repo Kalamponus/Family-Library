@@ -13,7 +13,7 @@ namespace FamilyLibrary.ViewModels
         public string Author { get; set; } = "";
 
         [Required(ErrorMessage = "Дата издания обязательна")]
-        public DateOnly ReleaseDate { get; set; }
+        public DateOnly? ReleaseDate { get; set; }
 
         public string? Description { get; set; } = "";
         public string? TableOfContents { get; set; } = "";

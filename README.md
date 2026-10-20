@@ -38,3 +38,6 @@ dotnet user-secrets set "ConnectionStrings:DataBaseConnection" "Host=localhost;D
 * или задать переменную окружения `ConnectionStrings\_\_DataBaseConnection`.
 
 **3. Запустите приложение**
+```bash
+dotnet run
+```

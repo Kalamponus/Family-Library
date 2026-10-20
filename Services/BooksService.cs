@@ -1,7 +1,8 @@
 ﻿using FamilyLibrary.DTO;
 using FamilyLibrary.Models;
+using FamilyLibrary.Persistence;
 
-namespace FamilyLibrary.Persistence
+namespace FamilyLibrary.Services
 {
     public class BooksService
     {
